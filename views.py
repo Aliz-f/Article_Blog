@@ -1,4 +1,5 @@
-import secrets
+import secrets , os
+from PIL import Image
 from application import app , db , bcrypt
 from flask import render_template , redirect , flash , url_for , request
 from application.forms import RegisterForm , LoginForm , UpdateAccountForm
@@ -20,9 +21,6 @@ posts = [
     }
 ]
 
-
-def save_picture(form_picture):
-    pass
 
 @app.route("/")
 @app.route("/home")
@@ -48,10 +46,9 @@ def register():
         db.session.add(user)
         db.session.commit()
         flash ('Your account has been created , Now you can Log in!' , 'success')
-        response = redirect(url_for('login'))
+        return redirect(url_for('login'))
     else:
-        response = render_template('register.html' , title = 'Register' , form = form)
-    return response
+        return render_template('register.html' , title = 'Register' , form = form)
 
 
 @app.route("/login" , methods = ['POST' , 'GET'])
@@ -70,13 +67,24 @@ def login():
                 return redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
-    response = render_template('login.html' , title = 'Login' , form = form)
-    return response
+    return render_template('login.html' , title = 'Login' , form = form)
 
 @app.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+def save_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    f_name , f_ext = os.path.splitext(form_picture.filename) #found file foramt
+    picture_fn = random_hex + f_ext 
+    picutre_path = os.path.join(app.root_path , 'static/profile_pics', picture_fn)
+
+    out_put_size = (125,125)
+    goual_iamge  = Image.open(form_picture)
+    goual_iamge.thumbnail(out_put_size)
+    goual_iamge.save(picutre_path)
+    return picture_fn
 
 @app.route("/account" , methods = ['GET' , 'POST'])
 @login_required
@@ -96,8 +104,8 @@ def account():
         form.email.data = current_user.email
 
     image_file = url_for ('static' , filename = 'profile_pics/'+ current_user.image_file)
-    response = render_template('account.html' , title = 'Account' , image_file = image_file , form = form)
-    return response
+    return render_template('account.html' , title = 'Account' , image_file = image_file , form = form)
+
 
 @app.route("/show-db")
 @login_required
