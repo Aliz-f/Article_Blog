@@ -24,10 +24,14 @@ def create_app (config_class = config):
     from application.users.views import users
     from application.posts.views import posts
     from application.main.views import main
+    from application.errors.views import errors
+
 
     app.register_blueprint(users)
     app.register_blueprint(posts)
     app.register_blueprint(main)
+    app.register_blueprint(errors)
+
     
     return app
 
